@@ -6,35 +6,33 @@ import cv2
 import multiprocessing
 
 time.sleep(2)
-k = 0
+IsFlagRaised = 0
 
 
 def checkSkills():
-    global k
     while True:
         skillScreenShot = pyautogui.screenshot()
         skillScreenShot.save(r'C:\Users\trkke\PycharmProjects\visionUsko\skill.png')
         skillImg = cv2.imread("skill.png")
-        crop_wolf = skillImg[0:250, 1550:1919]
+        crop_wolf = skillImg[0:250, 1550:1920]
         grayWolfImg = cv2.cvtColor(crop_wolf, cv2.COLOR_BGR2GRAY)
         template = cv2.imread("wolf.png", 0)
-        methods = [cv2.TM_CCOEFF, cv2.TM_CCOEFF_NORMED, cv2.TM_CCORR, cv2.TM_CCORR_NORMED,
-                   cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]
-        i = 0
-        for method in methods:
-            imgCopy = grayWolfImg.copy()
-            result = cv2.matchTemplate(imgCopy, template, method)
-            min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
-            if max_loc == (338, 92) or min_loc == (338, 92):
-                i = i + 1
-        if i > 0:
-            k = 0
-            pass
-        else:
-            k = k + 1
-            if k > 0:
+        result = cv2.matchTemplate(grayWolfImg, template, cv2.TM_CCOEFF_NORMED)
+        threshold = 0.90
+        location, location2 = np.where(result >= threshold)
+
+        if len(location) == 0 and len(location2) == 0:
+            global IsFlagRaised
+            IsFlagRaised = 1
+            time.sleep(1)
+            while len(location) == 0 and len(location2) == 0:
                 pydirectinput.press("9")
-                time.sleep(1.5)
+                if len(location) > 0 and len(location2) > 0:
+                    break
+            IsFlagRaised = 0
+            time.sleep(119)
+        else:
+            pass
 
 
 def checkHealty():
@@ -64,10 +62,12 @@ def checkHealty():
 
 
 def atack():
+    global IsFlagRaised
     while True:
-        pydirectinput.press("z")
-        pydirectinput.press("7")
-        time.sleep(.2)
+        if IsFlagRaised == 0:
+            pydirectinput.press("z")
+            pydirectinput.press("7")
+            time.sleep(.32)
 
 
 mpSkill = multiprocessing.Process(target=checkSkills)
