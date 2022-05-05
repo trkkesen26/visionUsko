@@ -32,6 +32,8 @@ def checkSkills():
         result = cv2.matchTemplate(grayWolfImg, template, cv2.TM_CCOEFF_NORMED)
         threshold = 0.90
         location, location2 = np.where(result >= threshold)
+        global flag
+        flag = True
 
         if len(location) == 0 and len(location2) == 0:
             wolfCounter = wolfCounter + 1
@@ -39,6 +41,7 @@ def checkSkills():
                 pydirectinput.press("s")
                 pydirectinput.press("9")
                 time.sleep(1.75)
+
             if wolfCounter == 2:
                 pydirectinput.press("w")
                 pydirectinput.press("9")
@@ -65,9 +68,6 @@ def checkHealty():
 
         if pix[155, 42] == (0, 0, 0):
             pydirectinput.press("0")
-        else:
-            print("can pix")
-            print(pix[155, 42])
 
         colorBlue = resultBlue[30, 70]
         if colorBlue[0] == 0 and colorBlue[1] == 0 and colorBlue[2] == 0:
@@ -82,6 +82,7 @@ def atack():
 
 
 def rpr():
+    IsTownNeed = 0
     while True:
         rprScreenShoot = pyautogui.screenshot()
         rprScreenShoot.save(r'C:\Users\trkke\PycharmProjects\visionUsko\rpr.png')
@@ -105,11 +106,15 @@ def rpr():
                 pydirectinput.mouseDown(button='right', x=location2[0] + 1550, y=location[0] + 420)
                 time.sleep(0.02)
                 pydirectinput.mouseUp(button='right', x=location2[0] + 1550, y=location[0] + 420)
-                print("repaired replaced is done")
 
-        if pix[265, 63] != (10, 10, 10):
-            print(pix[265, 63])
-        else:
+            else:
+                IsTownNeed = IsTownNeed + 1
+                if IsTownNeed > 5:
+                    pydirectinput.mouseDown(button='left', x=1665, y=1058)
+                    time.sleep(0.02)
+                    pydirectinput.mouseUp(button='left', x=1665, y=1058)
+
+        if pix[265, 63] == (10, 10, 10):
             pydirectinput.press("p")
             time.sleep(0.2)
             pydirectinput.mouseDown(button='left', x=1738, y=45)
@@ -121,6 +126,7 @@ def rpr():
             pydirectinput.mouseDown(button='left', x=1746, y=243)
             time.sleep(0.02)
             pydirectinput.mouseUp(button='left', x=1746, y=243)
+            time.sleep(.20)
             pydirectinput.press("s")
             pydirectinput.press("i")
 
@@ -175,6 +181,7 @@ mpRpr = multiprocessing.Process(target=rpr)
 
 
 if __name__ == '__main__':
+    flag = False
     time.sleep(2)
     mpSkill.start()
     mpHpMp.start()
@@ -184,5 +191,7 @@ if __name__ == '__main__':
     mpDef.start()
 
     while True:
-        time.sleep(1212)
-
+        time.sleep(3030)
+        if flag:
+            mpAtack.terminate()
+            mpAtack.join()
