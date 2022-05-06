@@ -6,6 +6,7 @@ import numpy as np
 import cv2
 import multiprocessing
 from PIL import Image
+import queue
 ######################################################################################################
 ######################################################################################################
 
@@ -32,8 +33,6 @@ def checkSkills():
         result = cv2.matchTemplate(grayWolfImg, template, cv2.TM_CCOEFF_NORMED)
         threshold = 0.90
         location, location2 = np.where(result >= threshold)
-        global flag
-        flag = True
 
         if len(location) == 0 and len(location2) == 0:
             wolfCounter = wolfCounter + 1
@@ -81,7 +80,7 @@ def atack():
         time.sleep(.32)
 
 
-def rpr():
+def rpr(q):
     IsTownNeed = 0
     while True:
         rprScreenShoot = pyautogui.screenshot()
@@ -113,6 +112,9 @@ def rpr():
                     pydirectinput.mouseDown(button='left', x=1665, y=1058)
                     time.sleep(0.02)
                     pydirectinput.mouseUp(button='left', x=1665, y=1058)
+                    pydirectinput.press("i")
+                    q.put("KILL ATACK")
+                    q.put("KILL WOLF")
 
         if pix[265, 63] == (10, 10, 10):
             pydirectinput.press("p")
@@ -173,25 +175,68 @@ def defenseCheck():
             pass
 
 
-mpDef = multiprocessing.Process(target=defenseCheck)
-mpSkill = multiprocessing.Process(target=checkSkills)
-mpHpMp = multiprocessing.Process(target=checkHealty)
-mpAtack = multiprocessing.Process(target=atack)
-mpRpr = multiprocessing.Process(target=rpr)
-
-
 if __name__ == '__main__':
-    flag = False
-    time.sleep(2)
-    mpSkill.start()
-    mpHpMp.start()
-    mpAtack.start()
-    mpRpr.start()
-    time.sleep(10)
-    mpDef.start()
-
+    q = multiprocessing.Queue()
+    q.put("START ALL")
     while True:
-        time.sleep(3030)
-        if flag:
+        msg = q.get()
+        if msg == "KILL WOLF":
+            mpSkill.terminate()
+            time.sleep(0.1)
+        elif msg == "START WOLF":
+            mpSkill = multiprocessing.Process(target=checkSkills)
+            mpSkill.start()
+            time.sleep(0.1)
+        elif msg == "KILL ATACK":
             mpAtack.terminate()
-            mpAtack.join()
+            time.sleep(0.1)
+        elif msg == "START ATACK":
+            mpAtack = multiprocessing.Process(target=atack)
+            mpAtack.start()
+            time.sleep(0.1)
+        elif msg == "KILL DEFENSE":
+            mpDef.terminate()
+            time.sleep(0.1)
+        elif msg == "START DEFENSE":
+            mpDef = multiprocessing.Process(target=defenseCheck)
+            mpDef.start()
+            time.sleep(0.1)
+        elif msg == "KILL RPR":
+            mpRpr.terminate()
+            time.sleep(0.1)
+        elif msg == "START RPR":
+            mpRpr = multiprocessing.Process(target=rpr, args=(q,))
+            mpRpr.start()
+            time.sleep(0.1)
+        elif msg == "KILL HPMP":
+            mpHpMp.terminate()
+            time.sleep(0.1)
+        elif msg == "START HPMP":
+            mpHpMp = multiprocessing.Process(target=checkHealty)
+            mpHpMp.start()
+            time.sleep(0.1)
+        elif msg == "KILL ALL":
+            mpSkill.terminate()
+            time.sleep(0.1)
+            mpAtack.terminate()
+            time.sleep(0.1)
+            mpDef.terminate()
+            time.sleep(0.1)
+            mpRpr.terminate()
+            time.sleep(0.1)
+            mpHpMp.terminate()
+            time.sleep(0.1)
+        elif msg == "START ALL":
+            mpDef = multiprocessing.Process(target=defenseCheck)
+            mpSkill = multiprocessing.Process(target=checkSkills)
+            mpHpMp = multiprocessing.Process(target=checkHealty)
+            mpAtack = multiprocessing.Process(target=atack)
+            mpRpr = multiprocessing.Process(target=rpr, args=(q,))
+            mpSkill.start()
+            time.sleep(0.1)
+            mpAtack.start()
+            time.sleep(0.1)
+            mpRpr.start()
+            time.sleep(0.1)
+            mpDef.start()
+            time.sleep(0.1)
